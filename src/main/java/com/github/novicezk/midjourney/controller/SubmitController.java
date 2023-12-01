@@ -5,6 +5,9 @@ import cn.hutool.core.util.RandomUtil;
 import com.github.novicezk.midjourney.Constants;
 import com.github.novicezk.midjourney.ProxyProperties;
 import com.github.novicezk.midjourney.ReturnCode;
+import com.github.novicezk.midjourney.baidu.CheckContent;
+import com.github.novicezk.midjourney.baidu.TextCheckReturn;
+import com.github.novicezk.midjourney.baidu.TextData;
 import com.github.novicezk.midjourney.dto.BaseSubmitDTO;
 import com.github.novicezk.midjourney.dto.SubmitBlendDTO;
 import com.github.novicezk.midjourney.dto.SubmitChangeDTO;
@@ -54,6 +57,7 @@ public class SubmitController {
 	private final TaskStoreService taskStoreService;
 	private final ProxyProperties properties;
 	private final TaskService taskService;
+	private final CheckContent checkContent;
 
 	@ApiOperation(value = "提交Imagine任务")
 	@PostMapping("/imagine")
@@ -67,12 +71,17 @@ public class SubmitController {
 		task.setAction(TaskAction.IMAGINE);
 		task.setPrompt(prompt);
 		String promptEn = translatePrompt(prompt);
-		try {
-			BannedPromptUtils.checkBanned(promptEn);
-		} catch (BannedPromptException e) {
+
+		TextCheckReturn textCheckReturn = checkContent.checkText(prompt);
+		assert textCheckReturn != null;
+		Integer conclusionType = textCheckReturn.getConclusionType();
+		if (conclusionType != 1) {
+			List<TextData> data = textCheckReturn.getData();
+			TextData textData = data.get(0);
 			return SubmitResultVO.fail(ReturnCode.BANNED_PROMPT, "可能包含敏感词")
-					.setProperty("promptEn", promptEn).setProperty("bannedWord", e.getMessage());
+					.setProperty("prompt", prompt).setProperty("bannedWord", textData.getMsg());
 		}
+
 		List<String> base64Array = Optional.ofNullable(imagineDTO.getBase64Array()).orElse(new ArrayList<>());
 		if (CharSequenceUtil.isNotBlank(imagineDTO.getBase64())) {
 			base64Array.add(imagineDTO.getBase64());
