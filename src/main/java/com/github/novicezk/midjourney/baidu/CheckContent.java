@@ -36,6 +36,7 @@ public class CheckContent {
 
             //调用文本审核接口并取得结果
             String result = HttpUtil.post(BaiduSensitiveConfig.CHECK_TEXT_URL, access_token, param);
+            System.out.println(result);
             // JSON解析对象
             TextCheckReturn tcr = JSON.parseObject(result, TextCheckReturn.class);
             return tcr;

@@ -70,7 +70,6 @@ public class SubmitController {
 		Task task = newTask(imagineDTO);
 		task.setAction(TaskAction.IMAGINE);
 		task.setPrompt(prompt);
-		String promptEn = translatePrompt(prompt);
 
 		TextCheckReturn textCheckReturn = checkContent.checkText(prompt);
 		assert textCheckReturn != null;
@@ -82,6 +81,7 @@ public class SubmitController {
 					.setProperty("prompt", prompt).setProperty("bannedWord", textData.getMsg());
 		}
 
+		String promptEn = translatePrompt(prompt);
 		List<String> base64Array = Optional.ofNullable(imagineDTO.getBase64Array()).orElse(new ArrayList<>());
 		if (CharSequenceUtil.isNotBlank(imagineDTO.getBase64())) {
 			base64Array.add(imagineDTO.getBase64());
