@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -37,6 +38,10 @@ public class BaiduAccessToken {
      * @return
      */
     public String getAuth() {
+        Object baiduToken = CacheManager.get("baidu_token");
+        if (baiduToken != null) {
+            return baiduToken.toString();
+        }
         //百度云应用的AK  百度云应用的SK
         return getAuth(appKey, appSecret);
     }
@@ -83,6 +88,7 @@ public class BaiduAccessToken {
              */
             JSONObject jsonObject = JSONObject.parseObject(result);
             String access_token = jsonObject.getString("access_token");
+            CacheManager.put("baidu_token", access_token, 30, TimeUnit.DAYS);
             return access_token;
         } catch (Exception e) {
             e.printStackTrace(System.err);
