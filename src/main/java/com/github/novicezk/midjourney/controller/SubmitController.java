@@ -82,6 +82,12 @@ public class SubmitController {
 		}
 
 		String promptEn = translatePrompt(prompt);
+		// 问心一言翻译可能出现下面的情况
+		if ("根据相关法律，这个问题不予以回答。您可以问我一些其它问题，我会尽力为您解答。".equals(promptEn)) {
+			return SubmitResultVO.fail(ReturnCode.BANNED_PROMPT, "可能包含敏感词")
+					.setProperty("prompt", prompt).setProperty("bannedWord", promptEn);
+		}
+
 		List<String> base64Array = Optional.ofNullable(imagineDTO.getBase64Array()).orElse(new ArrayList<>());
 		if (CharSequenceUtil.isNotBlank(imagineDTO.getBase64())) {
 			base64Array.add(imagineDTO.getBase64());

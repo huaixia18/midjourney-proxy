@@ -1,14 +1,18 @@
 package com.github.novicezk.midjourney.service.translate;
 
+import cn.hutool.core.exceptions.ValidateException;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.novicezk.midjourney.ProxyProperties;
+import com.github.novicezk.midjourney.ReturnCode;
 import com.github.novicezk.midjourney.baidu.CacheManager;
 import com.github.novicezk.midjourney.dto.wenxin.QianFanChatDto;
 import com.github.novicezk.midjourney.dto.wenxin.QianFanMessageDto;
 import com.github.novicezk.midjourney.dto.wenxin.QianFanTokenDto;
+import com.github.novicezk.midjourney.exception.BannedPromptException;
+import com.github.novicezk.midjourney.result.SubmitResultVO;
 import com.github.novicezk.midjourney.service.TranslateService;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +51,7 @@ public class WenXinTranslateServiceImpl implements TranslateService {
     public String translateToEnglish(String prompt) {
         QianFanMessageDto m1 = new QianFanMessageDto();
         m1.setRole("user");
-        m1.setContent("请讲我输入的内容翻译成英文，我输入的内容如下：" + prompt);
+        m1.setContent("我会用任何语言和你交流，你只需将我的话翻译为英语，不要解释我的话或者回复其他信息，请立刻将我的话翻译返回，我的话是:" + prompt);
         Map<String, List<QianFanMessageDto>> param = new HashMap<>();
         param.put("messages", List.of(m1));
         String json = JSON.toJSONString(param);
