@@ -48,16 +48,10 @@ public class WenXinTranslateServiceImpl implements TranslateService {
         QianFanMessageDto m1 = new QianFanMessageDto();
         m1.setRole("user");
         m1.setContent("请讲我输入的内容翻译成英文，我输入的内容如下：" + prompt);
-//        QianFanMessageDto m2 = new QianFanMessageDto();
-//        m2.setRole("user");
-//        m2.setContent(prompt);
         Map<String, List<QianFanMessageDto>> param = new HashMap<>();
         param.put("messages", List.of(m1));
-//        JSONObject json = new JSONObject(param);
         String json = JSON.toJSONString(param);
-        System.out.println(json);
         String url = QIANFAN_TRANSLATE_API + "?access_token=" + getToken();
-
         RequestBody body = RequestBody.create(
                 MediaType.parse("application/json"), json);
         OkHttpClient client = new OkHttpClient();
