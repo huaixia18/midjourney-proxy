@@ -46,6 +46,10 @@ public class ProxyProperties {
 	 */
 	private final OpenaiConfig openai = new OpenaiConfig();
 	/**
+	 * 文心一言翻译配置.
+	 */
+	private final WenxinTranslateConfig wenXinTranslate = new WenxinTranslateConfig();
+	/**
 	 * 中文prompt翻译方式.
 	 */
 	private TranslateWay translateWay = TranslateWay.NULL;
@@ -207,5 +211,19 @@ public class ProxyProperties {
 		 * 任务超时时间(分钟).
 		 */
 		private int timeoutMinutes = 5;
+	}
+
+	@Data
+	public static class WenxinTranslateConfig {
+
+		/**
+		 * 文心一言 apikey.
+		 */
+		private String apiKey;
+		/**
+		 * 文心一言 secretKey.
+		 */
+		private String secretKey;
+
 	}
 }

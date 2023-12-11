@@ -11,6 +11,10 @@ public enum TranslateWay {
 	 */
 	GPT,
 	/**
+	 * 文心一言
+	 */
+	WENXIN,
+	/**
 	 * 不翻译.
 	 */
 	NULL

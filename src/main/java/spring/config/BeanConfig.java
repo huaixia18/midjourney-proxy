@@ -12,6 +12,7 @@ import com.github.novicezk.midjourney.service.store.RedisTaskStoreServiceImpl;
 import com.github.novicezk.midjourney.service.translate.BaiduTranslateServiceImpl;
 import com.github.novicezk.midjourney.service.translate.GPTTranslateServiceImpl;
 import com.github.novicezk.midjourney.service.translate.NoTranslateServiceImpl;
+import com.github.novicezk.midjourney.service.translate.WenXinTranslateServiceImpl;
 import com.github.novicezk.midjourney.support.DiscordAccountHelper;
 import com.github.novicezk.midjourney.support.DiscordHelper;
 import com.github.novicezk.midjourney.support.Task;
@@ -44,6 +45,7 @@ public class BeanConfig {
 		return switch (this.properties.getTranslateWay()) {
 			case BAIDU -> new BaiduTranslateServiceImpl(this.properties.getBaiduTranslate());
 			case GPT -> new GPTTranslateServiceImpl(this.properties);
+			case WENXIN -> new WenXinTranslateServiceImpl(this.properties.getWenXinTranslate());
 			default -> new NoTranslateServiceImpl();
 		};
 	}
