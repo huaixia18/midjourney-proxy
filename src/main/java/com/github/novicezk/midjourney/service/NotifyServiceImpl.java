@@ -51,23 +51,23 @@ public class NotifyServiceImpl implements NotifyService {
 		TaskStatus taskStatus = task.getStatus();
 		Object taskLock = this.taskLocks.get(taskId, (CheckedUtil.Func0Rt<Object>) Object::new);
 		try {
+			log.info("图片生成进度：" + task.getProgress());
+			if ("100%".equals(task.getProgress())) {
+				ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
+				if (imageCheckReturn.getConclusionType() != 1) {
+					task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
+					task.setStatus(TaskStatus.FAILURE);
+					task.setDescription("可能包含敏感词");
+					task.setFailReason("可能包含敏感词");
+				}
+			}
 			String paramsStr = OBJECT_MAPPER.writeValueAsString(task);
 			this.executor.execute(() -> {
 				synchronized (taskLock) {
 					try {
 						ResponseEntity<String> responseEntity = postJson(notifyHook, paramsStr);
 						if (responseEntity.getStatusCode() == HttpStatus.OK) {
-							log.info("图片生成进度：" + task.getProgress());
-							if ("100%".equals(task.getProgress())) {
-								ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
-								if (imageCheckReturn.getConclusionType() != 1) {
-									task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
-									task.setStatus(TaskStatus.FAILURE);
-									task.setDescription("可能包含敏感词");
-									task.setFailReason("可能包含敏感词");
-								}
-							}
-							log.debug("推送任务变更成功, 任务ID: {}, status: {}, notifyHook: {}", taskId, taskStatus, notifyHook);
+							log.debug("推送任务变更成功, 任务ID: {}, status: {}, notifyHook: {}", taskId, task.getStatus(), notifyHook);
 						} else {
 							log.warn("推送任务变更失败, 任务ID: {}, notifyHook: {}, code: {}, msg: {}", taskId, notifyHook, responseEntity.getStatusCodeValue(), responseEntity.getBody());
 						}
