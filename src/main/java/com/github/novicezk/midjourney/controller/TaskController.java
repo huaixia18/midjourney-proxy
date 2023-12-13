@@ -40,38 +40,26 @@ public class TaskController {
 	@GetMapping("/{id}/fetch")
 	public Task fetch(@ApiParam(value = "任务ID") @PathVariable String id) {
 		log.info("调用指定ID获取任务");
-		Task task = this.taskStoreService.get(id);
-		if ("100%".equals(task.getProgress())) {
-			ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
-			if (imageCheckReturn.getConclusionType() != 1) {
-				task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
-				task.setStatus(TaskStatus.FAILURE);
-				task.setDescription("可能包含敏感词");
-				task.setFailReason("可能包含敏感词");
-			}
-		}
-		return task;
+        return this.taskStoreService.get(id);
 	}
 
 	@ApiOperation(value = "查询任务队列")
 	@GetMapping("/queue")
 	public List<Task> queue() {
 		log.info("调用查询任务队列");
-		List<Task> taskList = this.discordLoadBalancer.getQueueTaskIds().stream()
+        return this.discordLoadBalancer.getQueueTaskIds().stream()
 				.map(this.taskStoreService::get).filter(Objects::nonNull)
 				.sorted(Comparator.comparing(Task::getSubmitTime))
 				.toList();
-		return imageCheck(taskList);
 	}
 
 	@ApiOperation(value = "查询所有任务")
 	@GetMapping("/list")
 	public List<Task> list() {
 		log.info("调用查询所有任务");
-		List<Task> taskList = this.taskStoreService.list().stream()
+        return this.taskStoreService.list().stream()
 				.sorted((t1, t2) -> CompareUtil.compare(t2.getSubmitTime(), t1.getSubmitTime()))
 				.toList();
-		return imageCheck(taskList);
 	}
 
 
@@ -82,26 +70,7 @@ public class TaskController {
 		if (conditionDTO.getIds() == null) {
 			return Collections.emptyList();
 		}
-		List<Task> taskList = conditionDTO.getIds().stream().map(this.taskStoreService::get).filter(Objects::nonNull).toList();
-		imageCheck(taskList);
-		return taskList;
-	}
-
-
-	@NotNull
-	private List<Task> imageCheck(List<Task> taskList) {
-		for (Task task : taskList) {
-			if ("100%".equals(task.getProgress())) {
-				ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
-				if (imageCheckReturn.getConclusionType() != 1) {
-					task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
-					task.setStatus(TaskStatus.FAILURE);
-					task.setDescription("可能包含敏感词");
-					task.setFailReason("可能包含敏感词");
-				}
-			}
-		}
-		return taskList;
+        return conditionDTO.getIds().stream().map(this.taskStoreService::get).filter(Objects::nonNull).toList();
 	}
 
 }

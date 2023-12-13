@@ -8,6 +8,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.novicezk.midjourney.Constants;
 import com.github.novicezk.midjourney.ProxyProperties;
+import com.github.novicezk.midjourney.baidu.CheckContent;
+import com.github.novicezk.midjourney.baidu.ImageCheckReturn;
 import com.github.novicezk.midjourney.enums.TaskStatus;
 import com.github.novicezk.midjourney.support.Task;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +31,14 @@ public class NotifyServiceImpl implements NotifyService {
 	private final ThreadPoolTaskExecutor executor;
 	private final TimedCache<String, Object> taskLocks = CacheUtil.newTimedCache(Duration.ofHours(1).toMillis());
 
-	public NotifyServiceImpl(ProxyProperties properties) {
+	private final CheckContent checkContent;
+
+	public NotifyServiceImpl(ProxyProperties properties, CheckContent checkContent) {
 		this.executor = new ThreadPoolTaskExecutor();
 		this.executor.setCorePoolSize(properties.getNotifyPoolSize());
 		this.executor.setThreadNamePrefix("TaskNotify-");
 		this.executor.initialize();
+		this.checkContent = checkContent;
 	}
 
 	@Override
@@ -52,6 +57,15 @@ public class NotifyServiceImpl implements NotifyService {
 					try {
 						ResponseEntity<String> responseEntity = postJson(notifyHook, paramsStr);
 						if (responseEntity.getStatusCode() == HttpStatus.OK) {
+							if ("100".equals(task.getProgress())) {
+								ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
+								if (imageCheckReturn.getConclusionType() != 1) {
+									task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
+									task.setStatus(TaskStatus.FAILURE);
+									task.setDescription("可能包含敏感词");
+									task.setFailReason("可能包含敏感词");
+								}
+							}
 							log.debug("推送任务变更成功, 任务ID: {}, status: {}, notifyHook: {}", taskId, taskStatus, notifyHook);
 						} else {
 							log.warn("推送任务变更失败, 任务ID: {}, notifyHook: {}, code: {}, msg: {}", taskId, notifyHook, responseEntity.getStatusCodeValue(), responseEntity.getBody());
