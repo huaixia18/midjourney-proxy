@@ -160,6 +160,7 @@ public class DiscordInstanceImpl implements DiscordInstance {
 			ImageCheckReturn imageCheckReturn = this.checkContent.checkImage(task.getImageUrl());
 			if (imageCheckReturn.getConclusionType() != 1) {
 				task.setStatus(TaskStatus.FAILURE);
+				task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
 				task.setDescription("可能包含敏感词");
 				task.setFailReason("可能包含敏感词");
 			}
