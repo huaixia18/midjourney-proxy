@@ -12,6 +12,10 @@ public class ImageCheckReturn {
     private Integer conclusionType;//审核结果类型，可取值1.合规，2.不合规，3.疑似，4.审核失败
 //    private List<ImageData> data;//不合规/疑似/命中白名单项详细信息
 
+    private String error_msg;
+
+    private String error_code;
+
     public long getLog_id() {
         return log_id;
     }
@@ -43,6 +47,23 @@ public class ImageCheckReturn {
 //    public void setData(List<ImageData> data) {
 //        this.data = data;
 //    }
+
+
+    public String getError_msg() {
+        return error_msg;
+    }
+
+    public void setError_msg(String error_msg) {
+        this.error_msg = error_msg;
+    }
+
+    public String getError_code() {
+        return error_code;
+    }
+
+    public void setError_code(String error_code) {
+        this.error_code = error_code;
+    }
 
     @Override
     public String toString() {

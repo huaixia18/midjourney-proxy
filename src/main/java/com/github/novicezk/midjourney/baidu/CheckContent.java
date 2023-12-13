@@ -60,15 +60,15 @@ public class CheckContent {
         String access_token = baiduAccessToken.getAuth();
         try {
 
-            String param = "imgUrl=" + imagePath.replace("https://cdn.discordapp.com/", "https://ai-img-plus.caomaoweilai.com/") + "=&format=webp&quality=lossless&width=350&height=350";
+            String imgUrl = imagePath.replace("https://cdn.discordapp.com/", "https://ai-img-plus.caomaoweilai.com/") + "=&format=webp&quality=lossless&width=350&height=350";
+            String param = "imgUrl=" + imgUrl;
 
+            log.info("图片地址：" + imgUrl);
             //调用图像审核接口
-
             String result = HttpUtil.post(BaiduSensitiveConfig.CHECK_IMAGE_URL, access_token, param);
             log.info("图片审核结果：" + result);
             //JSON解析对象
-            ImageCheckReturn icr = JSON.parseObject(result, ImageCheckReturn.class);
-            return icr;
+            return JSON.parseObject(result, ImageCheckReturn.class);
         } catch (Exception e) {
             e.printStackTrace();
         }

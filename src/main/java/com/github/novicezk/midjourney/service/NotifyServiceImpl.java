@@ -54,6 +54,15 @@ public class NotifyServiceImpl implements NotifyService {
 			log.info("图片生成进度：" + task.getProgress());
 			if ("100%".equals(task.getProgress())) {
 				ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
+				// 如果失败，重试一次
+				if (imageCheckReturn != null && imageCheckReturn.getError_code() != null) {
+					imageCheckReturn = checkContent.checkImage(task.getImageUrl());
+				}
+
+				if (imageCheckReturn != null && imageCheckReturn.getError_code() != null) {
+					log.warn("图片审核失败：" + imageCheckReturn.getError_msg());
+				}
+				// 如果不合规
 				if (imageCheckReturn.getConclusionType() == 2) {
 					task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
 					task.setStatus(TaskStatus.FAILURE);
@@ -78,6 +87,8 @@ public class NotifyServiceImpl implements NotifyService {
 			});
 		} catch (JsonProcessingException e) {
 			log.warn("推送任务变更失败, 任务ID: {}, notifyHook: {}, 描述: {}", taskId, notifyHook, e.getMessage());
+		} catch (NullPointerException e) {
+			log.warn("图片审核失败");
 		}
 	}
 
