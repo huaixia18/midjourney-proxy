@@ -4,6 +4,7 @@ package com.github.novicezk.midjourney.support;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.github.novicezk.midjourney.Constants;
 import com.github.novicezk.midjourney.ProxyProperties;
+import com.github.novicezk.midjourney.baidu.CheckContent;
 import com.github.novicezk.midjourney.domain.DiscordAccount;
 import com.github.novicezk.midjourney.loadbalancer.DiscordInstance;
 import com.github.novicezk.midjourney.loadbalancer.DiscordInstanceImpl;
@@ -27,6 +28,7 @@ public class DiscordAccountHelper {
 	private final NotifyService notifyService;
 	private final List<MessageHandler> messageHandlers;
 	private final Map<String, String> paramsMap;
+	private final CheckContent checkContent;
 
 	public DiscordInstance createDiscordInstance(DiscordAccount account) {
 		if (!CharSequenceUtil.isAllNotBlank(account.getGuildId(), account.getChannelId(), account.getUserToken())) {
@@ -38,6 +40,6 @@ public class DiscordAccountHelper {
 		var messageListener = new UserMessageListener(account, this.messageHandlers);
 		var webSocketStarter = new UserWebSocketStarter(this.discordHelper.getWss(), account, messageListener, this.properties.getProxy());
 		return new DiscordInstanceImpl(account, webSocketStarter, this.restTemplate,
-				this.taskStoreService, this.notifyService, this.paramsMap);
+				this.taskStoreService, this.notifyService, this.paramsMap, this.checkContent);
 	}
 }

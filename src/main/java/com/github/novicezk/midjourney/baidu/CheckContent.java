@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.TreeMap;
@@ -13,7 +14,7 @@ import java.util.TreeMap;
 /**
  * 内容审核
  */
-@Component
+//@Component
 public class CheckContent {
 
 
@@ -45,6 +46,33 @@ public class CheckContent {
         }
         return null;
     }
+
+
+    /**
+     * 图像审核
+     *
+     * @param imagePath 需要审核的图片路径
+     * @return
+     */
+    public ImageCheckReturn checkImage(String imagePath) {
+        //获取access_token
+        String access_token = baiduAccessToken.getAuth();
+        try {
+
+            String param = "imgUrl=" + imagePath.replace("https://cdn.discordapp.com/", "https://ai-img-plus.caomaoweilai.com/") + "=&format=webp&quality=lossless&width=350&height=350";
+
+            //调用图像审核接口
+
+            String result = HttpUtil.post(BaiduSensitiveConfig.CHECK_IMAGE_URL, access_token, param);
+            //JSON解析对象
+            ImageCheckReturn icr = JSON.parseObject(result, ImageCheckReturn.class);
+            return icr;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
 
 }

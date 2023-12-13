@@ -3,6 +3,7 @@ package spring.config;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.github.novicezk.midjourney.ProxyProperties;
+import com.github.novicezk.midjourney.baidu.CheckContent;
 import com.github.novicezk.midjourney.loadbalancer.rule.IRule;
 import com.github.novicezk.midjourney.service.NotifyService;
 import com.github.novicezk.midjourney.service.TaskStoreService;
@@ -87,7 +88,12 @@ public class BeanConfig {
 	}
 
 	@Bean
-	DiscordAccountHelper discordAccountHelper(DiscordHelper discordHelper, TaskStoreService taskStoreService, NotifyService notifyService) throws IOException {
+	CheckContent checkContent() {
+		return new CheckContent();
+	}
+
+	@Bean
+	DiscordAccountHelper discordAccountHelper(DiscordHelper discordHelper, TaskStoreService taskStoreService, NotifyService notifyService, CheckContent checkContent) throws IOException {
 		var resources = this.applicationContext.getResources("classpath:api-params/*.json");
 		Map<String, String> paramsMap = new HashMap<>();
 		for (var resource : resources) {
@@ -95,8 +101,9 @@ public class BeanConfig {
 			String params = IoUtil.readUtf8(resource.getInputStream());
 			paramsMap.put(filename.substring(0, filename.length() - 5), params);
 		}
-		return new DiscordAccountHelper(discordHelper, this.properties, restTemplate(), taskStoreService, notifyService, messageHandlers(), paramsMap);
+		return new DiscordAccountHelper(discordHelper, this.properties, restTemplate(), taskStoreService, notifyService, messageHandlers(), paramsMap, checkContent);
 	}
+
 
 
 }

@@ -3,6 +3,8 @@ package com.github.novicezk.midjourney.loadbalancer;
 
 import com.github.novicezk.midjourney.Constants;
 import com.github.novicezk.midjourney.ReturnCode;
+import com.github.novicezk.midjourney.baidu.CheckContent;
+import com.github.novicezk.midjourney.baidu.ImageCheckReturn;
 import com.github.novicezk.midjourney.domain.DiscordAccount;
 import com.github.novicezk.midjourney.enums.BlendDimensions;
 import com.github.novicezk.midjourney.enums.TaskStatus;
@@ -17,6 +19,7 @@ import com.github.novicezk.midjourney.wss.WebSocketStarter;
 import com.github.novicezk.midjourney.wss.user.UserWebSocketStarter;
 import eu.maxschuster.dataurl.DataUrl;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
@@ -40,9 +43,10 @@ public class DiscordInstanceImpl implements DiscordInstance {
 	private final ThreadPoolTaskExecutor taskExecutor;
 	private final List<Task> runningTasks;
 	private final Map<String, Future<?>> taskFutureMap = Collections.synchronizedMap(new HashMap<>());
+	private final CheckContent checkContent;
 
 	public DiscordInstanceImpl(DiscordAccount account, UserWebSocketStarter socketStarter, RestTemplate restTemplate,
-			TaskStoreService taskStoreService, NotifyService notifyService, Map<String, String> paramsMap) {
+			TaskStoreService taskStoreService, NotifyService notifyService, Map<String, String> paramsMap, CheckContent checkContent) {
 		this.account = account;
 		this.socketStarter = socketStarter;
 		this.taskStoreService = taskStoreService;
@@ -55,6 +59,7 @@ public class DiscordInstanceImpl implements DiscordInstance {
 		this.taskExecutor.setQueueCapacity(account.getQueueSize());
 		this.taskExecutor.setThreadNamePrefix("TaskQueue-" + account.getDisplay() + "-");
 		this.taskExecutor.initialize();
+		this.checkContent = checkContent;
 	}
 
 	@Override
@@ -152,6 +157,12 @@ public class DiscordInstanceImpl implements DiscordInstance {
 			task.fail("执行错误，系统异常");
 			saveAndNotify(task);
 		} finally {
+			ImageCheckReturn imageCheckReturn = this.checkContent.checkImage(task.getImageUrl());
+			if (imageCheckReturn.getConclusionType() != 1) {
+				task.setStatus(TaskStatus.FAILURE);
+				task.setDescription("可能包含敏感词");
+				task.setFailReason("可能包含敏感词");
+			}
 			this.runningTasks.remove(task);
 			this.taskFutureMap.remove(task.getId());
 		}
