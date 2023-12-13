@@ -36,7 +36,17 @@ public class TaskController {
 	@ApiOperation(value = "指定ID获取任务")
 	@GetMapping("/{id}/fetch")
 	public Task fetch(@ApiParam(value = "任务ID") @PathVariable String id) {
-		return this.taskStoreService.get(id);
+		Task task = this.taskStoreService.get(id);
+		if ("100%".equals(task.getProgress())) {
+			ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
+			if (imageCheckReturn.getConclusionType() != 1) {
+				task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
+				task.setStatus(TaskStatus.FAILURE);
+				task.setDescription("可能包含敏感词");
+				task.setFailReason("可能包含敏感词");
+			}
+		}
+		return task;
 	}
 
 	@ApiOperation(value = "查询任务队列")
