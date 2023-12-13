@@ -3,6 +3,7 @@ package com.github.novicezk.midjourney.baidu;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,7 @@ import java.util.TreeMap;
 /**
  * 内容审核
  */
-//@Component
+@Slf4j
 public class CheckContent {
 
 
@@ -37,7 +38,7 @@ public class CheckContent {
 
             //调用文本审核接口并取得结果
             String result = HttpUtil.post(BaiduSensitiveConfig.CHECK_TEXT_URL, access_token, param);
-            System.out.println(result);
+            log.info("文本审核结果：" + result);
             // JSON解析对象
             TextCheckReturn tcr = JSON.parseObject(result, TextCheckReturn.class);
             return tcr;
@@ -64,6 +65,7 @@ public class CheckContent {
             //调用图像审核接口
 
             String result = HttpUtil.post(BaiduSensitiveConfig.CHECK_IMAGE_URL, access_token, param);
+            log.info("图片审核结果：" + result);
             //JSON解析对象
             ImageCheckReturn icr = JSON.parseObject(result, ImageCheckReturn.class);
             return icr;
