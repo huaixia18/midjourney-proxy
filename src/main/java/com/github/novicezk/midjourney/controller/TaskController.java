@@ -12,6 +12,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Api(tags = "任务查询")
+@Slf4j
 @RestController
 @RequestMapping("/task")
 @RequiredArgsConstructor
@@ -36,6 +39,7 @@ public class TaskController {
 	@ApiOperation(value = "指定ID获取任务")
 	@GetMapping("/{id}/fetch")
 	public Task fetch(@ApiParam(value = "任务ID") @PathVariable String id) {
+		log.info("调用指定ID获取任务");
 		Task task = this.taskStoreService.get(id);
 		if ("100%".equals(task.getProgress())) {
 			ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
@@ -52,28 +56,41 @@ public class TaskController {
 	@ApiOperation(value = "查询任务队列")
 	@GetMapping("/queue")
 	public List<Task> queue() {
-		return this.discordLoadBalancer.getQueueTaskIds().stream()
+		log.info("调用查询任务队列");
+		List<Task> taskList = this.discordLoadBalancer.getQueueTaskIds().stream()
 				.map(this.taskStoreService::get).filter(Objects::nonNull)
 				.sorted(Comparator.comparing(Task::getSubmitTime))
 				.toList();
+		return imageCheck(taskList);
 	}
 
 	@ApiOperation(value = "查询所有任务")
 	@GetMapping("/list")
 	public List<Task> list() {
-		return this.taskStoreService.list().stream()
+		log.info("调用查询所有任务");
+		List<Task> taskList = this.taskStoreService.list().stream()
 				.sorted((t1, t2) -> CompareUtil.compare(t2.getSubmitTime(), t1.getSubmitTime()))
 				.toList();
+		return imageCheck(taskList);
 	}
+
 
 	@ApiOperation(value = "根据ID列表查询任务")
 	@PostMapping("/list-by-condition")
 	public List<Task> listByIds(@RequestBody TaskConditionDTO conditionDTO) {
+		log.info("调用根据ID列表查询任务");
 		if (conditionDTO.getIds() == null) {
 			return Collections.emptyList();
 		}
-		List<Task> list = conditionDTO.getIds().stream().map(this.taskStoreService::get).filter(Objects::nonNull).toList();
-		for (Task task : list) {
+		List<Task> taskList = conditionDTO.getIds().stream().map(this.taskStoreService::get).filter(Objects::nonNull).toList();
+		imageCheck(taskList);
+		return taskList;
+	}
+
+
+	@NotNull
+	private List<Task> imageCheck(List<Task> taskList) {
+		for (Task task : taskList) {
 			if ("100%".equals(task.getProgress())) {
 				ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
 				if (imageCheckReturn.getConclusionType() != 1) {
@@ -84,7 +101,7 @@ public class TaskController {
 				}
 			}
 		}
-		return list;
+		return taskList;
 	}
 
 }
