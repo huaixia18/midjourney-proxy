@@ -57,7 +57,8 @@ public class NotifyServiceImpl implements NotifyService {
 					try {
 						ResponseEntity<String> responseEntity = postJson(notifyHook, paramsStr);
 						if (responseEntity.getStatusCode() == HttpStatus.OK) {
-							if ("100".equals(task.getProgress())) {
+							log.info("图片生成进度：" + task.getProgress());
+							if ("100%".equals(task.getProgress())) {
 								ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
 								if (imageCheckReturn.getConclusionType() != 1) {
 									task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
