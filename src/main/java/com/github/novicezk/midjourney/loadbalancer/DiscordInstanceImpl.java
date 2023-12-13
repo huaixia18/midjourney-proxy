@@ -146,19 +146,9 @@ public class DiscordInstanceImpl implements DiscordInstance {
 			}
 			saveAndNotify(task);
 			do {
-				if (task.getStatus() == TaskStatus.SUCCESS) {
-					ImageCheckReturn imageCheckReturn = this.checkContent.checkImage(task.getImageUrl());
-					if (imageCheckReturn.getConclusionType() != 1) {
-						task.setStatus(TaskStatus.FAILURE);
-						task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
-						task.setDescription("可能包含敏感词");
-						task.setFailReason("可能包含敏感词");
-					}
-				}
 				task.sleep();
 				saveAndNotify(task);
 			} while (task.getStatus() == TaskStatus.IN_PROGRESS);
-
 			log.debug("task finished, id: {}, status: {}", task.getId(), task.getStatus());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

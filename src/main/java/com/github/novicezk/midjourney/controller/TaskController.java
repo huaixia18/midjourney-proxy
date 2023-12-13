@@ -1,7 +1,10 @@
 package com.github.novicezk.midjourney.controller;
 
 import cn.hutool.core.comparator.CompareUtil;
+import com.github.novicezk.midjourney.baidu.CheckContent;
+import com.github.novicezk.midjourney.baidu.ImageCheckReturn;
 import com.github.novicezk.midjourney.dto.TaskConditionDTO;
+import com.github.novicezk.midjourney.enums.TaskStatus;
 import com.github.novicezk.midjourney.loadbalancer.DiscordLoadBalancer;
 import com.github.novicezk.midjourney.service.TaskStoreService;
 import com.github.novicezk.midjourney.support.Task;
@@ -28,6 +31,7 @@ import java.util.Objects;
 public class TaskController {
 	private final TaskStoreService taskStoreService;
 	private final DiscordLoadBalancer discordLoadBalancer;
+	private final CheckContent checkContent;
 
 	@ApiOperation(value = "指定ID获取任务")
 	@GetMapping("/{id}/fetch")
@@ -58,7 +62,19 @@ public class TaskController {
 		if (conditionDTO.getIds() == null) {
 			return Collections.emptyList();
 		}
-		return conditionDTO.getIds().stream().map(this.taskStoreService::get).filter(Objects::nonNull).toList();
+		List<Task> list = conditionDTO.getIds().stream().map(this.taskStoreService::get).filter(Objects::nonNull).toList();
+		for (Task task : list) {
+			if ("100%".equals(task.getProgress())) {
+				ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
+				if (imageCheckReturn.getConclusionType() != 1) {
+					task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
+					task.setStatus(TaskStatus.FAILURE);
+					task.setDescription("可能包含敏感词");
+					task.setFailReason("可能包含敏感词");
+				}
+			}
+		}
+		return list;
 	}
 
 }
