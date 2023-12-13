@@ -74,7 +74,7 @@ public class SubmitController {
 		TextCheckReturn textCheckReturn = checkContent.checkText(prompt);
 		assert textCheckReturn != null;
 		Integer conclusionType = textCheckReturn.getConclusionType();
-		if (conclusionType != 1) {
+		if (conclusionType == 2) {
 			List<TextData> data = textCheckReturn.getData();
 			TextData textData = data.get(0);
 			return SubmitResultVO.fail(ReturnCode.BANNED_PROMPT, "可能包含敏感词")
