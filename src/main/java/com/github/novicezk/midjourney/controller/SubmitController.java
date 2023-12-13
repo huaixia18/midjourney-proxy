@@ -71,15 +71,15 @@ public class SubmitController {
 		task.setAction(TaskAction.IMAGINE);
 		task.setPrompt(prompt);
 
-//		TextCheckReturn textCheckReturn = checkContent.checkText(prompt);
-//		assert textCheckReturn != null;
-//		Integer conclusionType = textCheckReturn.getConclusionType();
-//		if (conclusionType != 1) {
-//			List<TextData> data = textCheckReturn.getData();
-//			TextData textData = data.get(0);
-//			return SubmitResultVO.fail(ReturnCode.BANNED_PROMPT, "可能包含敏感词")
-//					.setProperty("prompt", prompt).setProperty("bannedWord", textData.getMsg());
-//		}
+		TextCheckReturn textCheckReturn = checkContent.checkText(prompt);
+		assert textCheckReturn != null;
+		Integer conclusionType = textCheckReturn.getConclusionType();
+		if (conclusionType != 1) {
+			List<TextData> data = textCheckReturn.getData();
+			TextData textData = data.get(0);
+			return SubmitResultVO.fail(ReturnCode.BANNED_PROMPT, "可能包含敏感词")
+					.setProperty("prompt", prompt).setProperty("bannedWord", textData.getMsg());
+		}
 
 		String promptEn = translatePrompt(prompt);
 		// 问心一言翻译可能出现下面的情况
