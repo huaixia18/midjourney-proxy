@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Base64;
@@ -69,7 +70,8 @@ public class CheckContent {
     public ImageCheckReturn checkImage(String imagePath) {
         //获取access_token
         String access_token = baiduAccessToken.getAuth();
-        String targetPath = "../imageTargetPath/image" + UUID.randomUUID() + ".jpg";
+        String targetDirectory = "../imageTargetPath";
+        String targetPath = targetDirectory + "/image" + UUID.randomUUID() + ".jpg";
         try {
 
             String imgUrl = imagePath.replace("https://cdn.discordapp.com/", "https://ai-img-plus.caomaoweilai.com/") + "=&format=webp&quality=lossless&width=350&height=350";
@@ -80,6 +82,10 @@ public class CheckContent {
             URL url = new URL(imgUrl);
             InputStream in = url.openStream();
 
+            Path directory = Paths.get(targetDirectory);
+            if (!Files.exists(directory)) {
+                Files.createDirectories(directory);
+            }
             // Download the Image
             Files.copy(in, Paths.get(targetPath), StandardCopyOption.REPLACE_EXISTING);
 
