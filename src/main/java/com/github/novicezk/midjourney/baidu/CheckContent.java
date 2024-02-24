@@ -12,11 +12,16 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Base64;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 
 /**
  * 内容审核
@@ -64,6 +69,7 @@ public class CheckContent {
     public ImageCheckReturn checkImage(String imagePath) {
         //获取access_token
         String access_token = baiduAccessToken.getAuth();
+        String targetPath = "../imageTargetPath/image" + UUID.randomUUID() + ".jpg";
         try {
 
             String imgUrl = imagePath.replace("https://cdn.discordapp.com/", "https://ai-img-plus.caomaoweilai.com/") + "=&format=webp&quality=lossless&width=350&height=350";
@@ -72,26 +78,26 @@ public class CheckContent {
 //            log.info("图片地址：" + imgUrl);
 
             URL url = new URL(imgUrl);
+            InputStream in = url.openStream();
 
-            // Read original image from url
-            BufferedImage originalImage = ImageIO.read(url);
+            // Download the Image
+            Files.copy(in, Paths.get(targetPath), StandardCopyOption.REPLACE_EXISTING);
 
-            // Compress the image
-            BufferedImage compressedImage = new BufferedImage(originalImage.getWidth(), originalImage.getHeight(), BufferedImage.TYPE_INT_RGB);
-            compressedImage.createGraphics().drawImage(originalImage, 0, 0, Color.WHITE, null);
-
-            // Convert the compressed image to byte array
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(compressedImage, "png", baos);
-            baos.flush();
-
-            // Encode the byte array to Base64
-            byte[] imageInByte = baos.toByteArray();
-            String base64String = Base64.getEncoder().encodeToString(imageInByte);
-            String param = "image=" + base64String;
+            byte[] imgData = FileUtil.readFileByBytes(targetPath);
+            String imgStr = Base64Util.encode(imgData);
+            String imgParam = URLEncoder.encode(imgStr, "UTF-8");
+            String param = "image=" + imgParam;
+//            log.info("image" + imgParam);
             //调用图像审核接口
             String result = HttpUtil.post(BaiduSensitiveConfig.CHECK_IMAGE_URL, access_token, param);
             log.info("图片审核结果：" + result);
+            // Delete the image
+            File file = new File(targetPath);
+            if(file.delete()) {
+                log.info("File deleted successfully");
+            } else {
+                log.info("Failed to delete the file");
+            }
             //JSON解析对象
             return JSON.parseObject(result, ImageCheckReturn.class);
         } catch (Exception e) {
