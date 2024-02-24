@@ -70,7 +70,7 @@ public class CheckContent {
     public ImageCheckReturn checkImage(String imagePath) {
         //获取access_token
         String access_token = baiduAccessToken.getAuth();
-        String targetDirectory = "../imageTargetPath";
+        String targetDirectory = "/home/spring/imageTargetPath";
         String targetPath = targetDirectory + "/image" + UUID.randomUUID() + ".jpg";
         try {
 
