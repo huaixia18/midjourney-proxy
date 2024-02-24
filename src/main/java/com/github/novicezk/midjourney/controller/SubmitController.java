@@ -219,6 +219,13 @@ public class SubmitController {
 		return this.taskService.submitBlend(task, dataUrlList, blendDTO.getDimensions());
 	}
 
+//	@ApiOperation(value = "TEST")
+//	@PostMapping("/test")
+//	public void test() {
+//
+//		checkContent.checkImage("https://ai-img-pro.caomaoweilai.com/attachments/1207492030503190561/1209691836747219005/kveiflroutlook.com_jk_84b458d5-77e1-41d0-b1ed-c9065a8917aa.png?ex=65e7d850&is=65d56350&hm=4763dbddaf5a5ce89498953bd72ca0bccc06acfeff62059a7021f61d6dac2952&");
+//	}
+
 	private Task newTask(BaseSubmitDTO base) {
 		Task task = new Task();
 		task.setId(System.currentTimeMillis() + RandomUtil.randomNumbers(3));
