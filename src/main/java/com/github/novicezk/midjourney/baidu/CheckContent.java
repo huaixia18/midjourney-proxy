@@ -7,8 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Base64;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -61,9 +67,28 @@ public class CheckContent {
         try {
 
             String imgUrl = imagePath.replace("https://cdn.discordapp.com/", "https://ai-img-plus.caomaoweilai.com/") + "=&format=webp&quality=lossless&width=350&height=350";
-            String param = "imgUrl=" + imgUrl;
+//            String param = "imgUrl=" + imgUrl;
 
-            log.info("图片地址：" + imgUrl);
+//            log.info("图片地址：" + imgUrl);
+
+            URL url = new URL(imgUrl);
+
+            // Read original image from url
+            BufferedImage originalImage = ImageIO.read(url);
+
+            // Compress the image
+            BufferedImage compressedImage = new BufferedImage(originalImage.getWidth(), originalImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+            compressedImage.createGraphics().drawImage(originalImage, 0, 0, Color.WHITE, null);
+
+            // Convert the compressed image to byte array
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(compressedImage, "png", baos);
+            baos.flush();
+
+            // Encode the byte array to Base64
+            byte[] imageInByte = baos.toByteArray();
+            String base64String = Base64.getEncoder().encodeToString(imageInByte);
+            String param = "image=" + base64String;
             //调用图像审核接口
             String result = HttpUtil.post(BaiduSensitiveConfig.CHECK_IMAGE_URL, access_token, param);
             log.info("图片审核结果：" + result);
