@@ -66,14 +66,24 @@ public class GPTTranslateServiceImpl implements TranslateService {
 				.temperature(this.openaiConfig.getTemperature())
 				.maxTokens(this.openaiConfig.getMaxTokens())
 				.build();
-		ChatCompletionResponse chatCompletionResponse = this.openAiClient.chatCompletion(chatCompletion);
-		try {
-			List<ChatChoice> choices = chatCompletionResponse.getChoices();
-			if (!choices.isEmpty()) {
-				return choices.get(0).getMessage().getContent();
+//		ChatCompletionResponse chatCompletionResponse = this.openAiClient.chatCompletion(chatCompletion);
+		// 最大重试次数
+		int maxRetries = 3;
+
+		for (int attempt = 1; attempt <= maxRetries; attempt++) {
+			try {
+				ChatCompletionResponse chatCompletionResponse = this.openAiClient.chatCompletion(chatCompletion);
+				List<ChatChoice> choices = chatCompletionResponse.getChoices();
+				if (!choices.isEmpty()) {
+					return choices.get(0).getMessage().getContent();
+				}
+			} catch (Exception e) {
+				log.warn("调用chat-gpt接口翻译中文失败 (第 {} 次尝试): {}", attempt, e.getMessage());
+				// 如果是最后一次尝试就返回原始 prompt
+				if (attempt == maxRetries) {
+					return prompt;
+				}
 			}
-		} catch (Exception e) {
-			log.warn("调用chat-gpt接口翻译中文失败: {}", e.getMessage());
 		}
 		return prompt;
 	}
