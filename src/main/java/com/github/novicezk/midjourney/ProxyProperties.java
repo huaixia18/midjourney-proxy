@@ -131,7 +131,7 @@ public class ProxyProperties {
 		/**
 		 * 使用的模型.
 		 */
-		private String model = "gpt-3.5-turbo-16k";
+		private String model = "gpt-3.5-turbo";
 		/**
 		 * 返回结果的最大分词数.
 		 */
