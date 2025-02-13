@@ -53,6 +53,8 @@ public class NotifyServiceImpl implements NotifyService {
 		try {
 			log.info("图片生成进度：" + task.getProgress());
 			if ("100%".equals(task.getProgress())) {
+				log.info("图片审核开始");
+                log.info("审核图片地址：{}", task.getImageUrl());
 				ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
 				// 如果失败，重试一次
 				if (imageCheckReturn != null && imageCheckReturn.getError_code() != null) {

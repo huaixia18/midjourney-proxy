@@ -75,9 +75,7 @@ public class CheckContent {
         try {
 
             String imgUrl = imagePath.replace("https://cdn.discordapp.com/", "https://ai-img-plus.caomaoweilai.com/") + "=&format=webp&quality=lossless&width=350&height=350";
-//            String param = "imgUrl=" + imgUrl;
-
-//            log.info("图片地址：" + imgUrl);
+            log.info("替换后图片地址：{}", imgUrl);
 
             URL url = new URL(imgUrl);
             InputStream in = url.openStream();
