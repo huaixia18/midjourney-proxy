@@ -36,7 +36,7 @@ public class BlendSuccessHandler extends MessageHandler {
 				task.setPrompt(parseData.getPrompt());
 			}
 		}
-		if (hasImage(message)) {
+		if (MessageType.CREATE.equals(messageType)) {
 			TaskCondition condition = new TaskCondition()
 					.setActionSet(Set.of(TaskAction.BLEND))
 					.setFinalPromptEn(parseData.getPrompt());

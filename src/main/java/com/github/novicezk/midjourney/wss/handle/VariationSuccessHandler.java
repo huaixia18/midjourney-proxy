@@ -17,14 +17,14 @@ import java.util.Set;
  */
 @Component
 public class VariationSuccessHandler extends MessageHandler {
-	private static final String CONTENT_REGEX_1 = "\\*\\*(.*?)\\*\\* - Variations by <@\\d+> \\((.*?)\\)";
-	private static final String CONTENT_REGEX_2 = "\\*\\*(.*?)\\*\\* - Variations \\(.*?\\) by <@\\d+> \\((.*?)\\)";
+	private static final String CONTENT_REGEX_1 = "\\*\\*(.*?)\\*\\* - Variations by <@\\d+>(?: \\[.*?\\]\\(<.*?>\\))? \\((.*?)\\)";
+	private static final String CONTENT_REGEX_2 = "\\*\\*(.*?)\\*\\* - Variations \\(.*?\\) by <@\\d+>(?: \\[.*?\\]\\(<.*?>\\))? \\((.*?)\\)";
 
 	@Override
 	public void handle(MessageType messageType, DataObject message) {
 		String content = getMessageContent(message);
 		ContentParseData parseData = getParseData(content);
-		if (MessageType.CREATE.equals(messageType) && parseData != null && hasImage(message)) {
+		if (MessageType.CREATE.equals(messageType) && parseData != null) {
 			TaskCondition condition = new TaskCondition()
 					.setActionSet(Set.of(TaskAction.VARIATION))
 					.setFinalPromptEn(parseData.getPrompt());

@@ -43,6 +43,13 @@ public abstract class MessageHandler {
 		if (task == null) {
 			return;
 		}
+		if (CharSequenceUtil.isBlank(imageUrl)) {
+			imageUrl = task.getImageUrl();
+		}
+		if (CharSequenceUtil.isBlank(imageUrl)) {
+			return;
+		}
+		messageHash = this.discordHelper.getMessageHash(imageUrl);
 		task.setProperty(Constants.TASK_PROPERTY_FINAL_PROMPT, finalPrompt);
 		task.setProperty(Constants.TASK_PROPERTY_MESSAGE_HASH, messageHash);
 		task.setImageUrl(imageUrl);
@@ -58,17 +65,51 @@ public abstract class MessageHandler {
 	}
 
 	protected boolean hasImage(DataObject message) {
-		DataArray attachments = message.optArray("attachments").orElse(DataArray.empty());
-		return !attachments.isEmpty();
+		return CharSequenceUtil.isNotBlank(getImageUrl(message));
 	}
 
 	protected String getImageUrl(DataObject message) {
-		DataArray attachments = message.getArray("attachments");
+		DataArray attachments = message.optArray("attachments").orElse(DataArray.empty());
 		if (!attachments.isEmpty()) {
-			String imageUrl = attachments.getObject(0).getString("url");
+			DataObject attachment = attachments.getObject(0);
+			String imageUrl = getFirstImageUrl(
+					attachment.getString("url", null),
+					attachment.getString("proxy_url", null));
 			return replaceCdnUrl(imageUrl);
 		}
+		DataArray embeds = message.optArray("embeds").orElse(DataArray.empty());
+		for (int i = 0; i < embeds.length(); i++) {
+			DataObject embed = embeds.getObject(i);
+			String imageUrl = getEmbedImageUrl(embed);
+			if (CharSequenceUtil.isNotBlank(imageUrl)) {
+				return replaceCdnUrl(imageUrl);
+			}
+		}
 		return null;
+	}
+
+	private String getEmbedImageUrl(DataObject embed) {
+		String imageUrl = embed.optObject("image").map(image -> image.getString("url")).orElse(null);
+		String thumbnailUrl = embed.optObject("thumbnail").map(thumbnail -> thumbnail.getString("url")).orElse(null);
+		String embedUrl = embed.opt("url").map(Object::toString).orElse(null);
+		return getFirstImageUrl(imageUrl, thumbnailUrl, embedUrl);
+	}
+
+	private String getFirstImageUrl(String... urls) {
+		for (String url : urls) {
+			if (isImageUrl(url)) {
+				return url;
+			}
+		}
+		return null;
+	}
+
+	private boolean isImageUrl(String url) {
+		if (CharSequenceUtil.isBlank(url)) {
+			return false;
+		}
+		String normalized = CharSequenceUtil.subBefore(url, "?", false).toLowerCase();
+		return CharSequenceUtil.endWithAny(normalized, ".png", ".jpg", ".jpeg", ".webp", ".gif");
 	}
 
 	protected String replaceCdnUrl(String imageUrl) {

@@ -20,15 +20,15 @@ import java.util.regex.Pattern;
  */
 @Component
 public class UpscaleSuccessHandler extends MessageHandler {
-	private static final String CONTENT_REGEX_1 = "\\*\\*(.*?)\\*\\* - Upscaled \\(.*?\\) by <@\\d+> \\((.*?)\\)";
-	private static final String CONTENT_REGEX_2 = "\\*\\*(.*?)\\*\\* - Upscaled by <@\\d+> \\((.*?)\\)";
+	private static final String CONTENT_REGEX_1 = "\\*\\*(.*?)\\*\\* - Upscaled \\(.*?\\) by <@\\d+>(?: \\[.*?\\]\\(<.*?>\\))? \\((.*?)\\)";
+	private static final String CONTENT_REGEX_2 = "\\*\\*(.*?)\\*\\* - Upscaled by <@\\d+>(?: \\[.*?\\]\\(<.*?>\\))? \\((.*?)\\)";
 	private static final String CONTENT_REGEX_3 = "\\*\\*(.*?)\\*\\* - Image #\\d <@\\d+>";
 
 	@Override
 	public void handle(MessageType messageType, DataObject message) {
 		String content = getMessageContent(message);
 		ContentParseData parseData = getParseData(content);
-		if (MessageType.CREATE.equals(messageType) && parseData != null && hasImage(message)) {
+		if (MessageType.CREATE.equals(messageType) && parseData != null) {
 			TaskCondition condition = new TaskCondition()
 					.setActionSet(Set.of(TaskAction.UPSCALE))
 					.setFinalPromptEn(parseData.getPrompt());
