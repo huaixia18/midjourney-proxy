@@ -55,6 +55,7 @@ public class NotifyServiceImpl implements NotifyService {
 				checkImageBeforeNotify(task);
 			}
 			String paramsStr = OBJECT_MAPPER.writeValueAsString(task);
+			log.info("推送任务变更数据, 任务ID: {}, notifyHook: {}, payload: {}", taskId, notifyHook, paramsStr);
 			this.executor.execute(() -> {
 				synchronized (taskLock) {
 					try {
