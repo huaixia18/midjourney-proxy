@@ -48,29 +48,11 @@ public class NotifyServiceImpl implements NotifyService {
 			return;
 		}
 		String taskId = task.getId();
-		TaskStatus taskStatus = task.getStatus();
 		Object taskLock = this.taskLocks.get(taskId, (CheckedUtil.Func0Rt<Object>) Object::new);
 		try {
 			log.info("图片生成进度：" + task.getProgress());
 			if ("100%".equals(task.getProgress())) {
-				log.info("图片审核开始");
-                log.info("审核图片地址：{}", task.getImageUrl());
-				ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
-				// 如果失败，重试一次
-				if (imageCheckReturn != null && imageCheckReturn.getError_code() != null) {
-					imageCheckReturn = checkContent.checkImage(task.getImageUrl());
-				}
-
-				if (imageCheckReturn != null && imageCheckReturn.getError_code() != null) {
-					log.warn("图片审核失败：" + imageCheckReturn.getError_msg());
-				}
-				// 如果不合规
-				if (imageCheckReturn.getConclusionType() == 2) {
-					task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
-					task.setStatus(TaskStatus.FAILURE);
-					task.setDescription("可能包含敏感词");
-					task.setFailReason("可能包含敏感词");
-				}
+				checkImageBeforeNotify(task);
 			}
 			String paramsStr = OBJECT_MAPPER.writeValueAsString(task);
 			this.executor.execute(() -> {
@@ -89,8 +71,35 @@ public class NotifyServiceImpl implements NotifyService {
 			});
 		} catch (JsonProcessingException e) {
 			log.warn("推送任务变更失败, 任务ID: {}, notifyHook: {}, 描述: {}", taskId, notifyHook, e.getMessage());
-		} catch (NullPointerException e) {
-			log.warn("图片审核失败");
+		}
+	}
+
+	private void checkImageBeforeNotify(Task task) {
+		if (CharSequenceUtil.isBlank(task.getImageUrl())) {
+			log.warn("图片审核跳过, 任务ID: {}, 图片地址为空", task.getId());
+			return;
+		}
+		log.info("图片审核开始");
+		log.info("审核图片地址：{}", task.getImageUrl());
+		ImageCheckReturn imageCheckReturn = checkContent.checkImage(task.getImageUrl());
+		// 如果失败，重试一次
+		if (imageCheckReturn != null && imageCheckReturn.getError_code() != null) {
+			imageCheckReturn = checkContent.checkImage(task.getImageUrl());
+		}
+		if (imageCheckReturn == null) {
+			log.warn("图片审核失败, 任务ID: {}, 审核结果为空，继续推送回调", task.getId());
+			return;
+		}
+		if (imageCheckReturn.getError_code() != null) {
+			log.warn("图片审核失败, 任务ID: {}, error: {}，继续推送回调", task.getId(), imageCheckReturn.getError_msg());
+			return;
+		}
+		// 如果不合规
+		if (Integer.valueOf(2).equals(imageCheckReturn.getConclusionType())) {
+			task.setImageUrl("https://ai.caomaoweilai.com/images/%E8%BF%9D%E8%A7%84%E6%8E%A7%E7%8A%B6%E6%80%812.png");
+			task.setStatus(TaskStatus.FAILURE);
+			task.setDescription("可能包含敏感词");
+			task.setFailReason("可能包含敏感词");
 		}
 	}
 
